@@ -5,13 +5,9 @@ const UserSchema = new mongoose.Schema({
     type: String,
     required: [true, 'Please add a name'],
   },
-  macAddress: {
-    type: String,
-    required: [true, 'Please add a name'],
-  },
   role: {
     type: String,
-    enum: ['user', 'Admin'],
+    enum: ['user', 'admin'],
     default: 'user',
   },
   createdAt: {

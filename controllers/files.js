@@ -37,6 +37,9 @@ mongoose.connection.on('connected', () => {
   microsoft = new mongoose.mongo.GridFSBucket(db, { bucketName: 'microsoft' })
 })
 
+// @desc    Upload a File
+// @route   POST /upload
+// @access  Private
 exports.uploadFile = async (req, res, next) => {
   const file = req.file
   if (!file || file.length === 0) {
@@ -48,6 +51,9 @@ exports.uploadFile = async (req, res, next) => {
   res.status(200).json({ file: file })
 }
 
+// @desc    Delete a File
+// @route   DELETE /delete/:id
+// @access  Private
 exports.removeFile = async (req, res, next) => {
   images.delete(mongoose.Types.ObjectId(req.params.id), (err, gridStore) => {
     if (err) {
@@ -136,6 +142,9 @@ exports.removeFile = async (req, res, next) => {
   })
 }
 
+// @desc    Get a File
+// @route   GET /:filename
+// @access  Public
 exports.getFile = async (req, res, next) => {
   images.find({ filename: req.params.filename }).toArray((err, file) => {
     if (!file || file.length === 0) {
@@ -195,6 +204,9 @@ exports.getFile = async (req, res, next) => {
   })
 }
 
+// @desc    Download a File
+// @route   GET /delete/:id
+// @access  Public
 exports.downloadFile = async (req, res, next) => {
   images.find({ filename: req.params.filename }).toArray((err, files) => {
     if (!files || files.length === 0) {
@@ -264,6 +276,9 @@ exports.downloadFile = async (req, res, next) => {
   })
 }
 
+// @desc    Get All Videos
+// @route   GET /videos
+// @access  Public
 exports.getAllVideoFiles = async (req, res, next) => {
   videos.find().toArray((err, files) => {
     if (!files || files.length === 0) {
@@ -276,6 +291,9 @@ exports.getAllVideoFiles = async (req, res, next) => {
   })
 }
 
+// @desc    Get All Microsoft Docs
+// @route   GET /docs
+// @access  Public
 exports.getAllMicrosoftDocs = async (req, res, next) => {
   microsoft.find().toArray((err, files) => {
     if (!files || files.length === 0) {
@@ -288,6 +306,9 @@ exports.getAllMicrosoftDocs = async (req, res, next) => {
   })
 }
 
+// @desc    Get All JavaScript and Ecmascript Files
+// @route   GET /jsecma
+// @access  Public
 exports.getAllJavascriptAndEcmascriptFiles = async (req, res, next) => {
   js.find().toArray((err, files) => {
     if (!files || files.length === 0) {
@@ -300,6 +321,9 @@ exports.getAllJavascriptAndEcmascriptFiles = async (req, res, next) => {
   })
 }
 
+// @desc    Get All PDFs
+// @route   GET /pdfs
+// @access  Public
 exports.getAllPdfFiles = async (req, res, next) => {
   pdfs.find().toArray((err, files) => {
     if (!files || files.length === 0) {
@@ -312,6 +336,9 @@ exports.getAllPdfFiles = async (req, res, next) => {
   })
 }
 
+// @desc    Get All Audio Files
+// @route   GET /audio
+// @access  Public
 exports.getAllAudioFiles = async (req, res, next) => {
   audio.find().toArray((err, files) => {
     if (!files || files.length === 0) {
@@ -324,6 +351,9 @@ exports.getAllAudioFiles = async (req, res, next) => {
   })
 }
 
+// @desc    Get All Photos
+// @route   GET /photos
+// @access  Public
 exports.getAllImageFiles = async (req, res, next) => {
   images.find().toArray((err, files) => {
     if (!files || files.length === 0) {
@@ -336,6 +366,9 @@ exports.getAllImageFiles = async (req, res, next) => {
   })
 }
 
+// @desc    Get All Others FIles with unspecified FIle Types
+// @route   GET /others
+// @access  Public
 exports.getAllOtherFiles = async (req, res, next) => {
   others.find().toArray((err, files) => {
     if (!files || files.length === 0) {
