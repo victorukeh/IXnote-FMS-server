@@ -21,7 +21,7 @@ const {
   getPrivateFile,
   getAllPrivateFiles,
   downloadPrivateFile,
-  removePrivateFile
+  removePrivateFile,
 } = require('../controllers/files')
 
 router.post('/upload', protect, upload.single('file'), uploadFile)
@@ -31,7 +31,6 @@ router.post(
   privateUpload.single('file'),
   uploadPrivateFile
 )
-
 router.get('/videos', getAllVideoFiles)
 router.get('/pdfs', getAllPdfFiles)
 router.get('/jsecma', getAllJavascriptAndEcmascriptFiles)
