@@ -1,6 +1,7 @@
 const express = require('express')
 const { mongo_uri } = require('./config/db')
 const { GridFsStorage } = require('multer-gridfs-storage')
+const errorHandler = require('./middleware/error')
 const dotenv = require('dotenv')
 const app = express()
 
@@ -14,8 +15,23 @@ dotenv.config({
   path: './config/config.env',
 })
 
-// Create GridFsStorage
-const storage = new GridFsStorage({
+// Authenticated GridFsStorage
+const private = new GridFsStorage({
+  url: mongo_uri,
+  file: (req, file) => {
+    return new Promise((resolve, reject) => {
+      const filename = file.originalname
+      const fileinfo = {
+        filename: filename,
+        bucketName: 'private',
+      }
+      resolve(fileinfo)
+    })
+  },
+})
+
+// Unauthenticated GridFsStorage
+const public = new GridFsStorage({
   url: mongo_uri,
   file: (req, file) => {
     return new Promise((resolve, reject) => {
@@ -81,10 +97,17 @@ const storage = new GridFsStorage({
     })
   },
 })
-module.exports = { storage }
+module.exports = { public, private }
 
 const uploads = require('./routers/files')
+const users = require('./routers/users')
+const auth = require('./routers/auth')
+
+app.use('/auth', auth)
+app.use('/users', users)
 app.use('/', uploads)
+
+app.use(errorHandler)
 
 const port = process.env.PORT || 2000
 const server = app.listen(port, console.log(`server running on port ${port}`))

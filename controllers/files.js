@@ -7,6 +7,7 @@ let microsoft
 let audio
 let others
 let pdfs
+let private
 
 mongoose.connection.on('connected', () => {
   var db = mongoose.connections[0].db
@@ -35,6 +36,10 @@ mongoose.connection.on('connected', () => {
 mongoose.connection.on('connected', () => {
   var db = mongoose.connections[0].db
   microsoft = new mongoose.mongo.GridFSBucket(db, { bucketName: 'microsoft' })
+})
+mongoose.connection.on('connected', () => {
+  var db = mongoose.connections[0].db
+  private = new mongoose.mongo.GridFSBucket(db, { bucketName: 'private' })
 })
 
 // @desc    Upload a File
@@ -378,5 +383,89 @@ exports.getAllOtherFiles = async (req, res, next) => {
     }
 
     return res.json(files)
+  })
+}
+
+// @desc    Upload a Private File
+// @route   POST /private/upload
+// @access  Private
+exports.uploadPrivateFile = async (req, res, next) => {
+  const file = req.file
+  if (!file || file.length === 0) {
+    res.status(200).json({
+      success: false,
+      file: 'No file chosen',
+    })
+  }
+  res.status(200).json({ file: file })
+}
+
+// @desc    Get a Private File
+// @route   GET /private/:filename
+// @access  Private
+exports.getPrivateFile = async (req, res, next) => {
+  private.find({ filename: req.params.filename }).toArray((err, file) => {
+    if (!file || file.length === 0) {
+      return next(
+        res.status(404).json({
+          success: false,
+          err: 'File not found',
+        })
+      )
+    } else {
+      return res.json(file)
+    }
+  })
+}
+
+// @desc    Get All Private Files
+// @route   GET /private
+// @access  Private
+exports.getAllPrivateFiles = async (req, res, next) => {
+  private.find().toArray((err, files) => {
+    if (!files || files.length === 0) {
+      return res.status(404).json({
+        err: 'No files exist',
+      })
+    }
+
+    return res.json(files)
+  })
+}
+
+// @desc    Download a File
+// @route   GET private/delete/:id
+// @access  Private
+exports.downloadPrivateFile = async (req, res, next) => {
+  private.find({ filename: req.params.filename }).toArray((err, files) => {
+    if (!files || files.length === 0) {
+      return next(
+        res.status(404).json({
+          success: false,
+          err: 'File not found',
+        })
+      )
+    } else {
+      return private.openDownloadStreamByName(req.params.filename).pipe(res)
+    }
+  })
+}
+
+// @desc    Delete a File
+// @route   DELETE /private/delete/:id
+// @access  Private
+exports.removePrivateFile = async (req, res, next) => {
+  private.delete(mongoose.Types.ObjectId(req.params.id), (err, gridStore) => {
+    if (err) {
+      return res.status(404).json({
+        success: false,
+        err: 'File does not exist',
+      })
+    } else {
+      res.status(200).json({
+        success: true,
+        message: 'Deleted',
+      })
+    }
   })
 }
