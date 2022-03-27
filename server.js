@@ -4,7 +4,10 @@ const { GridFsStorage } = require('multer-gridfs-storage')
 const errorHandler = require('./middleware/error')
 const dotenv = require('dotenv')
 const app = express()
+const cors = require('cors')
+const mongoose = require('mongoose')
 
+app.use(cors())
 app.use(express.json())
 app.use(
   express.urlencoded({
@@ -15,23 +18,10 @@ dotenv.config({
   path: './config/config.env',
 })
 
-// Authenticated GridFsStorage
-const private = new GridFsStorage({
-  url: mongo_uri,
-  file: (req, file) => {
-    return new Promise((resolve, reject) => {
-      const filename = file.originalname
-      const fileinfo = {
-        filename: filename,
-        bucketName: 'private',
-      }
-      resolve(fileinfo)
-    })
-  },
-})
+const conn = mongoose.createConnection(mongo_uri)
 
-// Unauthenticated GridFsStorage
-const public = new GridFsStorage({
+//  GridFsStorage
+const storage = new GridFsStorage({
   url: mongo_uri,
   file: (req, file) => {
     return new Promise((resolve, reject) => {
@@ -97,14 +87,9 @@ const public = new GridFsStorage({
     })
   },
 })
-module.exports = { public, private }
+module.exports = { storage, conn }
 
 const uploads = require('./routers/files')
-const users = require('./routers/users')
-const auth = require('./routers/auth')
-
-app.use('/auth', auth)
-app.use('/users', users)
 app.use('/', uploads)
 
 app.use(errorHandler)
