@@ -80,7 +80,7 @@ exports.Log = async (req, res, next) => {
 }
 
 exports.getLogs = async (req, res, next) => {
-  const logs = await Log.find().sort({ createdAt: 1 })
+  const logs = await Log.find().sort({ createdAt: -1 })
   res.status(200).json({
     logs: logs,
   })
