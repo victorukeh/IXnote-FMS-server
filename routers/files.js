@@ -25,11 +25,13 @@ const {
   removeJsEcmaFile,
   removePdfFile,
   removeMicrosoftFile,
+  renameFile
 } = require('../controllers/files')
 
 
 router.post('/upload', upload.single('file'), uploadFile)
 router.post('/log', Log)
+router.put('/edit', renameFile)
 router.get('/search', searchFile)
 router.get('/logs', getLogs)
 router.get('/videos', getAllVideoFiles)
@@ -41,6 +43,7 @@ router.get('/photos', getAllImageFiles)
 router.get('/others', getAllOtherFiles)
 router.get('/download/:filename', downloadFile)
 router.get('/:filename', getFile)
+router.put('/edit', renameFile)
 router.delete('/image/:id', removeImageFile)
 router.delete('/video/:id', removeVideoFile)
 router.delete('/audio/:id', removeAudioFile)
@@ -49,5 +52,6 @@ router.delete('/jsecma/:id', removeJsEcmaFile)
 router.delete('/pdfs/:id', removePdfFile)
 router.delete('/docs/:id', removeMicrosoftFile)
 router.delete('/:id', removeFile)
+
 
 module.exports = router

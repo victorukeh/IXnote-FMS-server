@@ -10,7 +10,6 @@ let microsoft, microsoftBucket
 let audio, audioBucket
 let others, othersBucket
 let pdfs, pdfBucket
-let private, privateBucket
 
 mongoose.connection.on('connected', () => {
   var db = mongoose.connections[0].db
@@ -60,21 +59,22 @@ mongoose.connection.on('connected', () => {
 })
 
 exports.Log = async (req, res, next) => {
-  const ipInfo = JSON.stringify(getIP(req)).split(',')[0]
-  const clientIp = ipInfo.split('::')[1].split(':')[1]
-  const Ip = clientIp.replace('"', '')
+  // const ipInfo = JSON.stringify(getIP(req)).split(',')[0]
+  // const clientIp = ipInfo.split('::')[1].split(':')[1]
+  // const Ip = clientIp.replace('"', '')
+  var addr = require('os').networkInterfaces()
+  var mac = addr['Wi-Fi'][0].mac
   const task = req.query.task
   const color = req.query.color
   const file = req.query.file
   const log = await new Log({
-    Ip: Ip,
+    Ip: mac,
     task: task,
     color: color,
     file: file,
   })
   await log.save()
-  console.log(log)
-  res.status(200).json({
+  return res.status(200).json({
     log: log,
   })
 }
@@ -85,9 +85,10 @@ exports.getLogs = async (req, res, next) => {
     logs: logs,
   })
 }
+
 // @desc    Upload a File
 // @route   POST /upload
-// @access  Private
+// @access  Public
 exports.uploadFile = async (req, res, next) => {
   const file = req.file
   if (!file || file.length === 0) {
@@ -97,6 +98,56 @@ exports.uploadFile = async (req, res, next) => {
     })
   }
   return res.status(200).json({ file: file })
+}
+
+// @desc    Rename a File
+// @route   PUT /rename
+// @access  Public
+exports.renameFile = async (req, res, next) => {
+  const id = mongoose.Types.ObjectId(req.query.id)
+  const filename = req.query.name
+  await imageBucket.rename(id, filename, (err, gridStore) => {
+    if (err) return
+    return res.status(200).json({
+      success: true,
+    })
+  })
+  await videoBucket.rename(id, filename, (err, gridStore) => {
+    if (err) return
+    return res.status(200).json({
+      success: true,
+    })
+  })
+  await pdfBucket.rename(id, filename, (err, gridStore) => {
+    if (err) return
+    return res.status(200).json({
+      success: true,
+    })
+  })
+   await audioBucket.rename(id, filename, (err, gridStore) => {
+    if (err) return
+    return res.status(200).json({
+      success: true,
+    })
+  })
+  await microsoftBucket.rename(id, filename, (err, gridStore) => {
+    if (err) return
+    return res.status(200).json({
+      success: true,
+    })
+  })
+  await jsBucket.rename(id, filename, (err, gridStore) => {
+    if (err) return
+    return res.status(200).json({
+      success: true,
+    })
+  })
+  await othersBucket.rename(id, filename, (err, gridStore) => {
+    if (err) return
+    return res.status(200).json({
+      success: true,
+    })
+  })
 }
 
 // @desc    Delete An Image File
@@ -109,7 +160,7 @@ exports.removeImageFile = async (req, res, next) => {
       return res.status(404).json({
         message: 'File does not exist',
       })
-    res.status(200)
+    return res.status(200).json({ success: true })
   })
 }
 
@@ -123,7 +174,7 @@ exports.removeAudioFile = async (req, res, next) => {
       return res.status(404).json({
         error: 'File does not exist',
       })
-    res.status(200)
+    return res.status(200).json({ success: true })
   })
 }
 
@@ -137,7 +188,7 @@ exports.removeVideoFile = async (req, res, next) => {
       return res.status(404).json({
         error: 'File does not exist',
       })
-    res.status(200)
+    return res.status(200).json({ success: true })
   })
 }
 
@@ -151,7 +202,7 @@ exports.removeJsEcmaFile = async (req, res, next) => {
       return res.status(404).json({
         error: 'File does not exist',
       })
-    res.status(200)
+    return res.status(200).json({ success: true })
   })
 }
 
@@ -165,7 +216,7 @@ exports.removePdfFile = async (req, res, next) => {
       return res.status(404).json({
         error: 'File does not exist',
       })
-    res.status(200)
+    return res.status(200).json({ success: true })
   })
 }
 
@@ -179,7 +230,7 @@ exports.removeMicrosoftFile = async (req, res, next) => {
       return res.status(404).json({
         error: 'File does not exist',
       })
-    res.status(200)
+    return res.status(200).json({ success: true })
   })
 }
 
@@ -194,12 +245,12 @@ exports.removeOthersFile = async (req, res, next) => {
       return res.status(404).json({
         error: 'File does not exist',
       })
-    res.status(200)
+    return res.status(200).json({ success: true })
   })
 }
 // @desc    Delete a File
 // @route   DELETE /delete/:id
-// @access  Private
+// @access  Public
 exports.removeFile = async (req, res, next) => {
   imageBucket.delete(
     mongoose.Types.ObjectId(req.params.id),
@@ -242,7 +293,7 @@ exports.removeFile = async (req, res, next) => {
                                         }
                                       )
                                     } else {
-                                      res.status(200).json({
+                                      return res.status(200).json({
                                         success: true,
                                         message: 'Deleted',
                                       })
@@ -250,7 +301,7 @@ exports.removeFile = async (req, res, next) => {
                                   }
                                 )
                               } else {
-                                res.status(200).json({
+                                return res.status(200).json({
                                   success: true,
                                   message: 'Deleted',
                                 })
@@ -258,7 +309,7 @@ exports.removeFile = async (req, res, next) => {
                             }
                           )
                         } else {
-                          res.status(200).json({
+                          return res.status(200).json({
                             success: true,
                             message: 'Deleted',
                           })
@@ -266,7 +317,7 @@ exports.removeFile = async (req, res, next) => {
                       }
                     )
                   } else {
-                    res.status(200).json({
+                    return res.status(200).json({
                       success: true,
                       message: 'Deleted',
                     })
@@ -274,7 +325,7 @@ exports.removeFile = async (req, res, next) => {
                 }
               )
             } else {
-              res.status(200).json({
+              return res.status(200).json({
                 success: true,
                 message: 'Deleted',
               })
@@ -282,61 +333,13 @@ exports.removeFile = async (req, res, next) => {
           }
         )
       } else {
-        res.status(200).json({
+        return res.status(200).json({
           success: true,
           message: 'Deleted',
         })
       }
     }
   )
-  // const id = mongoose.Types.ObjectId(req.params.id)
-  // if (!id) return
-  // await othersBucket.delete(id, (err, gridStore) => {
-  //   if (!err) return res.status(200)
-  // })
-  // await imageBucket.delete(id, (err, gridStore) => {
-  //   if (!err) return res.status(200)
-  // })
-  // await videoBucket.delete(id, (err, gridStore) => {
-  //   if (!err) return res.status(200)
-  // })
-  // await pdfBucket.delete(id, (err, gridStore) => {
-  //   if (!err) return res.status(200)
-  // })
-  // await jsBucket.delete(id, (err, gridStore) => {
-  //   if (!err) return res.status(200)
-  // })
-  // await audioBucket.delete(id, (err, gridStore) => {
-  //   if (!err) return res.status(200)
-  // })
-  // await microsoftBucket.delete(id, (err, gridStore) => {
-  //   if (!err) return res.status(200)
-  // })
-  // return res.status(404).json({
-  //   message: 'File does not exist'
-  // })
-  // await images.files.findOne(
-  //   { filename: req.params.filename },
-  //   async function (err, files) {
-  //     if (files || files.length != 0) {
-  //       const response = await imageBucket
-  //         .openDownloadStreamByName(req.params.filename)
-  //         .pipe(res)
-  //       return response
-  //     }
-  //   }
-  // )
-  // await videos.files.findOne(
-  //   { filename: req.params.filename },
-  //   async function (err, files) {
-  //     if (files || files.length != 0) {
-  //       const response = await videoBucket
-  //         .openDownloadStreamByName(req.params.filename)
-  //         .pipe(res)
-  //       return response
-  //     }
-  //   }
-  // )
 }
 
 // @desc    Get a File
@@ -485,14 +488,15 @@ exports.getFile = async (req, res, next) => {
 }
 
 // @desc    Download a File
-// @route   GET /delete/:id
+// @route   GET /download/:id
 // @access  Public
 exports.downloadFile = asyncHandler(async (req, res, next) => {
+  // console.log(req.params.filename)
   await images.files.findOne(
     { filename: req.params.filename },
-    async function (err, files) {
+     async function (err, files) {
       if (!files || files.length === 0) return
-      const response = await imageBucket
+      const response = imageBucket
         .openDownloadStreamByName(req.params.filename)
         .pipe(res)
       return response
@@ -500,9 +504,9 @@ exports.downloadFile = asyncHandler(async (req, res, next) => {
   )
   await videos.files.findOne(
     { filename: req.params.filename },
-    async function (err, files) {
+     async function (err, files) {
       if (!files || files.length === 0) return
-      const response = await videoBucket
+      const response = videoBucket
         .openDownloadStreamByName(req.params.filename)
         .pipe(res)
       return response
@@ -510,9 +514,9 @@ exports.downloadFile = asyncHandler(async (req, res, next) => {
   )
   await js.files.findOne(
     { filename: req.params.filename },
-    async function (err, files) {
+     async function (err, files) {
       if (!files || files.length === 0) return
-      const response = await jsBucket
+      const response = jsBucket
         .openDownloadStreamByName(req.params.filename)
         .pipe(res)
       return response
@@ -520,9 +524,9 @@ exports.downloadFile = asyncHandler(async (req, res, next) => {
   )
   await microsoft.files.findOne(
     { filename: req.params.filename },
-    async function (err, files) {
+     async function (err, files) {
       if (!files || files.length === 0) return
-      const response = await microsoftBucket
+      const response = microsoftBucket
         .openDownloadStreamByName(req.params.filename)
         .pipe(res)
       return response
@@ -530,9 +534,9 @@ exports.downloadFile = asyncHandler(async (req, res, next) => {
   )
   await pdfs.files.findOne(
     { filename: req.params.filename },
-    async function (err, files) {
+     async function (err, files) {
       if (!files || files.length === 0) return
-      const response = await pdfBucket
+      const response = pdfBucket
         .openDownloadStreamByName(req.params.filename)
         .pipe(res)
       return response
@@ -540,9 +544,9 @@ exports.downloadFile = asyncHandler(async (req, res, next) => {
   )
   await audio.files.findOne(
     { filename: req.params.filename },
-    async function (err, files) {
+     async function (err, files) {
       if (!files || files.length === 0) return
-      const response = await audioBucket
+      const response = audioBucket
         .openDownloadStreamByName(req.params.filename)
         .pipe(res)
       return response
@@ -550,12 +554,9 @@ exports.downloadFile = asyncHandler(async (req, res, next) => {
   )
   await others.files.findOne(
     { filename: req.params.filename },
-    async function (err, files) {
-      if (!files || files.length === 0)
-        return res.status(404).json({
-          message: 'File does not exist',
-        })
-      const response = await othersBucket
+     async function (err, files) {
+      if (!files || files.length === 0) return
+      const response = othersBucket
         .openDownloadStreamByName(req.params.filename)
         .pipe(res)
       return response
@@ -663,10 +664,10 @@ exports.getAllOtherFiles = async (req, res, next) => {
   })
 }
 
-// @desc    Upload a Private File
-// @route   POST /private/upload
-// @access  Private
-exports.uploadPrivateFile = async (req, res, next) => {
+// @desc    Upload a Public File
+// @route   POST /Public/upload
+// @access  Public
+exports.uploadPublicFile = async (req, res, next) => {
   const file = req.file
   if (!file || file.length === 0) {
     return res.status(200).json({
@@ -677,11 +678,11 @@ exports.uploadPrivateFile = async (req, res, next) => {
   return res.status(200).json({ file: file })
 }
 
-// @desc    Get a Private File
-// @route   GET /private/:filename
-// @access  Private
-exports.getPrivateFile = async (req, res, next) => {
-  private.find({ filename: req.params.filename }).toArray((err, file) => {
+// @desc    Get a Public File
+// @route   GET /Public/:filename
+// @access  Public
+exports.getPublicFile = async (req, res, next) => {
+  Public.find({ filename: req.params.filename }).toArray((err, file) => {
     if (!file || file.length === 0) {
       const files = []
       return res.status(200).json(files)
@@ -691,11 +692,11 @@ exports.getPrivateFile = async (req, res, next) => {
   })
 }
 
-// @desc    Get All Private Files
-// @route   GET /private
-// @access  Private
-exports.getAllPrivateFiles = async (req, res, next) => {
-  private.files.find().toArray((err, files) => {
+// @desc    Get All Public Files
+// @route   GET /Public
+// @access  Public
+exports.getAllPublicFiles = async (req, res, next) => {
+  Public.files.find().toArray((err, files) => {
     if (!files || files.length === 0) {
       return res.status(404).json({
         err: 'No files exist',
@@ -707,39 +708,20 @@ exports.getAllPrivateFiles = async (req, res, next) => {
 }
 
 // @desc    Download a File
-// @route   GET private/delete/:id
-// @access  Private
-exports.downloadPrivateFile = async (req, res, next) => {
+// @route   GET Public/delete/:id
+// @access  Public
+exports.downloadPublicFile = async (req, res, next) => {
   const filename = req.params.filename
-  private.files.findOne({ filename: filename }, function (err, files) {
+  Public.files.findOne({ filename: filename }, function (err, files) {
     if (!files || files.length === 0) {
       return res.status(404).json({
         success: false,
         err: 'File not found',
       })
     } else {
-      return privateBucket
-        .openDownloadStreamByName(req.params.filename)
-        .pipe(res)
+      return PublicBucket.openDownloadStreamByName(req.params.filename).pipe(
+        res
+      )
     }
   })
 }
-
-// // @desc    Delete a File
-// // @route   DELETE /private/delete/:id
-// // @access  Private
-// exports.removePrivateFile = async (req, res, next) => {
-//   private.delete(mongoose.Types.ObjectId(req.params.id), (err, gridStore) => {
-//     if (err) {
-//       return res.status(404).json({
-//         success: false,
-//         err: 'File does not exist',
-//       })
-//     } else {
-//       res.status(200).json({
-//         success: true,
-//         message: 'Deleted',
-//       })
-//     }
-//   })
-// }
