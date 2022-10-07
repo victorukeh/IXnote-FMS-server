@@ -12,7 +12,7 @@ dotenv.config({
 	path: "./config/config.env",
 });
 
-connectDB()
+// connectDB()
 app.use(cors());
 app.use(express.json());
 app.use(
